@@ -1,57 +1,107 @@
-# import spacy
-# import os
+from coref_stage import Coref
+from TermsExtractor import extractor
+from NER import FlairNer, SpacyNER
+from nltk import StanfordPOSTagger, word_tokenize, sent_tokenize
+from openie import StanfordOpenIE
+import pandas as pd
+import os
 
-import numpy as np
-from matplotlib import pyplot as plt
-from scipy.cluster.hierarchy import dendrogram
+os.environ["JAVAHOME"] = "C:/Program Files/Java/jre1.8.0_361/bin/java.exe"
 
-from sklearn.cluster import AgglomerativeClustering
-from sklearn.datasets import load_iris
+JAR = 'C-Value-Term-Extraction-master/stanford-postagger-2017-06-09/stanford-postagger-2017-06-09/stanford-postagger.jar'
+TAG_MODEL = 'C-Value-Term-Extraction-master/stanford-postagger-2017-06-09/stanford-postagger-2017-06-09/models/english-bidirectional-distsim.tagger'
 
+TAGGER = StanfordPOSTagger(TAG_MODEL, JAR, encoding = "utf-8")
 
-def plot_dendrogram(model, **kwargs):
-    # Create linkage matrix and then plot the dendrogram
-
-    # create the counts of samples under each node
-    counts = np.zeros(model.children_.shape[0])
-    n_samples = len(model.labels_)
-    for i, merge in enumerate(model.children_):
-        current_count = 0
-        for child_idx in merge:
-            if child_idx < n_samples:
-                current_count += 1  # leaf node
-            else:
-                current_count += counts[child_idx - n_samples]
-        counts[i] = current_count
-
-    linkage_matrix = np.column_stack(
-        [model.children_, model.distances_, counts]
-    ).astype(float)
-
-    # Plot the corresponding dendrogram
-    dendrogram(linkage_matrix, **kwargs)
+new_txt = Coref('ohsumed-first-20000-docs/ohsumed-first-20000-docs/test/C01/0000011')
+# print('new text: ', new_txt)
+with open('new_text.txt', 'w') as file:
+    for line in new_txt:
+        line = line.strip()
+        if (line[-1] != '.'):
+            line += '.'
+        file.write(line + '\n')
+    file.close()
 
 
-iris = load_iris()
-X = iris.data
+properties = {
+    'openie.affinity_probability_cap': 1/15,
+}
 
-# setting distance_threshold=0 ensures we compute the full tree.
-model = AgglomerativeClustering(distance_threshold=0, n_clusters=None)
+path = "new_text.txt"
+txt = open(path, 'r').read()
+txt = ' '.join(txt.splitlines())
 
-model = model.fit(X)
-plt.title("Hierarchical Clustering Dendrogram")
-# plot the top three levels of the dendrogram
-plot_dendrogram(model, truncate_mode="level", p=3)
-plt.xlabel("Number of points in node (or index of point if no parenthesis).")
-plt.show()
+# print(txt)
 
-# nlp = spacy.load('en_core_web_lg')
-# term_lst = open('C01_10docs_terms.txt', 'r').read().split('\n')
-# term_vector_lst = [nlp(term).vector for term in term_lst]
-#
-# print(type(term_vector_lst[0]))
+with StanfordOpenIE(properties=properties) as client:
+    result = client.annotate(txt)
+    # print(result)
+    df = pd.DataFrame.from_dict(result)
+    # graph_image = 'graph.png'
+    # client.generate_graphviz_graph(txt, graph_image)
+    # print('Graph generated: %s.' % graph_image)
 
+    print('Finished relation extraction\n')
 
+# list các câu sau khi được coref
+sentences = []
 
+with open('new_text.txt', 'r') as file:
+    line = file.readline()
+    while (line != ''):
+        line = line.strip('\n')
+        print('line in new text:', line)
+        sentences.append(line)
 
+        line = file.readline()
+    
+    sentencesTokenized = [word_tokenize(sentence) for sentence in sentences]
+    # print(sentencesTokenized)
+
+    file.close()
+
+tagged_sentences = TAGGER.tag_sents(sentencesTokenized)
+# print(tagged_sentences)
+
+tagged_text = ''
+for tagged_sentence in tagged_sentences:
+    tagged_words = []
+    for word, tag in tagged_sentence:
+        tagged_words.append(f"{word}_{tag}")
+    tagged_sentence_str = " ".join(tagged_words)
+    tagged_text += tagged_sentence_str + ' '
+
+tagged_text = [tagged_text]
+
+term_list1 = extractor(tagged_text, 'Noun', 8, 2, 1)
+term_list2 = extractor(tagged_text, 'AdjNoun', 8, 2, 1)
+term_list3 = extractor(tagged_text, 'AdjPrepNoun', 8, 2, 1)
+
+final_term_list = pd.concat([term_list1, term_list2, term_list3], ignore_index=True).drop_duplicates(subset='Term')
+# print(final_term_list)
+
+final_term_list.to_excel('OSHUMED_terms.xlsx')
+
+terms = pd.read_excel('OSHUMED_terms.xlsx')['Term'].values.tolist()
+
+# print(terms)
+# a = df.iloc[0]
+# print(a['subject'])
+
+filtered_rows = []
+for i in range(len(df.index)):
+    for term in terms:
+        row = df.iloc[i]
+        if (term in row['subject'] or term in row['object']):
+            filtered_rows.append(row)
+            break
+
+filtered_df = pd.DataFrame(filtered_rows)
+
+print(filtered_df)
+
+filtered_df.to_excel('OSHUMED_SVO.xlsx')
+
+FlairNer(sentences)
 
