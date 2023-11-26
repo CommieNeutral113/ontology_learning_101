@@ -6,6 +6,8 @@ from openie import StanfordOpenIE
 import pandas as pd
 import os
 
+# Your java path
+# Dont know where? just google it
 os.environ["JAVAHOME"] = "C:/Program Files/Java/jre1.8.0_361/bin/java.exe"
 
 JAR = 'C-Value-Term-Extraction-master/stanford-postagger-2017-06-09/stanford-postagger-2017-06-09/stanford-postagger.jar'
