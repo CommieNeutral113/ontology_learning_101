@@ -125,7 +125,8 @@ def Coref(path, name = ''):
     for sent in sent_inds:
         print('SENTENCE:', sent, '\n')
         if start_term_index >= len(new_sorted_coref_output):
-            break
+            output_sents.append(sent[2])
+            continue
 
         terms_in_sent = []
         for i in range(start_term_index, len(new_sorted_coref_output)):

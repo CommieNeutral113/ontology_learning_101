@@ -2,6 +2,7 @@ from coref_stage import Coref
 from TermsExtractor import extractor
 from NER import FlairNER, SpacyNER
 from nltk import StanfordPOSTagger, word_tokenize
+from CreateRDF import generator
 from openie import StanfordOpenIE
 import pandas as pd
 import os
@@ -9,6 +10,7 @@ import spacy
 
 
 nlp = spacy.load('en_core_web_lg')
+
 # Your java path
 # Dont know where? just google it
 os.environ["JAVAHOME"] = "C:/Program Files/Java/jre1.8.0_361/bin/java.exe"
@@ -113,7 +115,7 @@ filtered_rows = []
 for i in range(len(unfiltered_relation.index)):
     row = unfiltered_relation.iloc[i]
     for term in terms:
-        if ((term in row['subject']) and (term in row['object']) or (term in row['object'])):
+        if ((term == row['subject']) and (term == row['object']) or (term == row['object'])):
             # print(row)
             filtered_rows.append(row)
             break
@@ -175,3 +177,4 @@ ner_df.drop_duplicates(['Entity']).reset_index(drop=True).to_excel('Ner_xlsx/Osh
 
 final_term_list.reset_index(drop=True).to_excel('OSHUMED_terms.xlsx')
 
+# generator('Warren_Buffet_wiki', final_relation)
