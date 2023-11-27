@@ -91,21 +91,24 @@ def generator(filename, relation_df:pd.DataFrame, ner_df: pd.DataFrame, term_df:
     entities = entities_has_class + terms
 
     for entity in entities:
-        Entities += f'''    <!-- http://www.semanticweb.org/long/ontologies/2023/10/{filename}#{entity} -->
+        Entities += f'''    <!-- http://www.semanticweb.org/long/ontologies/2023/10/{filename}#{entity.replace(' ', '_')} -->
 
-    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/long/ontologies/2023/10/{filename}#{entity}">
+    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/long/ontologies/2023/10/{filename}#{entity.replace(' ', '_')}">
 '''
         if (entity in entities_has_class):
             row = ner_df.loc[ner_df['Entity'] == entity]
-            entity_class = row['Label'].values[0]
+            entity_class = row['Label'].values[0].replace(' ', '_')
             Entities += f'''        <rdf:type rdf:resource="http://www.semanticweb.org/long/ontologies/2023/10/{filename}#{entity_class}"/>
 '''
         if (entity in subject_list):
-            row = relation_df.loc[relation_df['subject'] == entity]
-            relate_to = row['relation'].values[0].replace(' ', '_')
-            object_related = row['object'].values[0].replace(' ', '_')
-            Entities += f'''        <{relate_to} rdf:resource="http://www.semanticweb.org/long/ontologies/2023/10/{filename}#{object_related}"/>
+            rows = relation_df.loc[relation_df['subject'] == entity]
+            for index in range(len(rows)):
+                row = rows.iloc[index]         
+                relate_to = row['relation'].replace(' ', '_')
+                object_related = row['object'].replace(' ', '_')
+                Entities += f'''        <{relate_to} rdf:resource="http://www.semanticweb.org/long/ontologies/2023/10/{filename}#{object_related}"/>
 '''
+
 
         Entities += '''    </owl:NamedIndividual>
 '''
