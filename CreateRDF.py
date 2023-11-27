@@ -129,7 +129,7 @@ def generator(filename, relation_df:pd.DataFrame, ner_df: pd.DataFrame, term_df:
 
     # print (rdf_text)
     # path = 'RDF_file/' + filename + '.txt'
-    with open(path, 'w') as file:
+    with open(path + '.txt', 'w') as file:
         file.write(rdf_text)
         file.close()
     
