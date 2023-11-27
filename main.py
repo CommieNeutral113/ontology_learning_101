@@ -1,11 +1,14 @@
 from coref_stage import Coref
 from TermsExtractor import extractor
 from NER import FlairNER, SpacyNER
-from nltk import StanfordPOSTagger, word_tokenize, sent_tokenize
+from nltk import StanfordPOSTagger, word_tokenize
 from openie import StanfordOpenIE
 import pandas as pd
 import os
+import spacy
 
+
+nlp = spacy.load('en_core_web_lg')
 # Your java path
 # Dont know where? just google it
 os.environ["JAVAHOME"] = "C:/Program Files/Java/jre1.8.0_361/bin/java.exe"
@@ -38,7 +41,7 @@ with open('new_text.txt', 'w') as file:
 
 
 properties = {
-    'openie.affinity_probability_cap': 1/10,
+    'openie.affinity_probability_cap': 1/8,
 }
 
 path = "new_text.txt"
@@ -50,7 +53,7 @@ txt = ' '.join(txt.splitlines())
 with StanfordOpenIE(properties=properties) as client:
     result = client.annotate(txt)
     # print(result)
-    df = pd.DataFrame.from_dict(result)
+    unfiltered_relation = pd.DataFrame.from_dict(result).sort_values(by=['object'])
     # graph_image = 'graph.png'
     # client.generate_graphviz_graph(txt, graph_image)
     # print('Graph generated: %s.' % graph_image)
@@ -92,10 +95,6 @@ term_list2 = extractor(tagged_text, 'AdjNoun', 8, 2, 1)
 term_list3 = extractor(tagged_text, 'AdjPrepNoun', 8, 2, 1)
 
 final_term_list = pd.concat([term_list1, term_list2, term_list3], ignore_index=True).drop_duplicates(subset='Term')
-# print(final_term_list)
-
-final_term_list.to_excel('OSHUMED_terms.xlsx')
-
 
 ner_df = SpacyNER(sentences)
 
@@ -107,26 +106,72 @@ ner_df = ner_df.loc[(ner_df['Label'] == 'PERSON') |
                     (ner_df['Label'] == 'ORG')]
 
 
-terms = final_term_list['Term'].values.tolist()
-terms += ner_df['Entity'].values.tolist()
-print(terms)
+terms = final_term_list['Term'].values.tolist() + ner_df['Entity'].values.tolist()
+# print(terms)
 
 filtered_rows = []
-for i in range(len(df.index)):
+for i in range(len(unfiltered_relation.index)):
+    row = unfiltered_relation.iloc[i]
     for term in terms:
-        row = df.iloc[i]
-        if ((term in row['subject']) and (term in row['object'])):
+        if ((term in row['subject']) and (term in row['object']) or (term in row['object'])):
             # print(row)
             filtered_rows.append(row)
             break
 
-final_relation = pd.DataFrame(filtered_rows)
+index = 0
+# while index < range(len(filtered_rows)):
+#     row = filtered_rows[index]
+#     temp_sentence = row['subject'] + ' ' + row['relation'] + ' ' + row['object']
+#     index +=
 
-print(final_relation)
+filtered_rows_range = len(filtered_rows)
+i_index = 0
+while(i_index < filtered_rows_range):
+    i_row = filtered_rows[i_index]
+    i_sentence = i_row['subject'] + ' ' + i_row['relation'] + ' ' + i_row['object']
+    # print('i sentence:', i_sentence)
+    j_index = i_index + 1
+    while j_index < filtered_rows_range:
+        j_row = filtered_rows[j_index]
+        j_sentence = j_row['subject'] + ' ' + j_row['relation'] + ' ' + j_row['object']
+        # print('\tj sentence:', j_sentence)
+        if (nlp(i_sentence).similarity(nlp(j_sentence)) > 0.8):
+            del filtered_rows[j_index]
+            filtered_rows_range -= 1
+            continue
 
-final_relation.to_excel('OSHUMED_SVO.xlsx')
+        j_index += 1
+    print('Process detecting relation similarity: ', int((i_index/filtered_rows_range)*100), '%', sep='')
+    i_index += 1
+        
+print('Process detecting relation similarity: 100%')
 
-# ner_df = ner_df.loc[(ner_df['Label'] == ('PERSON' or 'FAC' or 'NORP' or 'GPE' or 'LOC' or 'ORG'))]
+# for row in filtered_rows:
+#     temp_sentence = row['subject'] + ' ' + row['relation'] + ' ' + row['object']
+#     if index < 10:
+#         print(temp_sentence)
+    
+#     else :
+#         break
+#     index += 1
 
-ner_df.to_excel('Ner_xlsx/Oshumed_NER.xlsx')
+
+final_relation = pd.DataFrame(filtered_rows).sort_values(by=['object'])
+
+# for i in range(len(final_relation)):
+    
+
+
+for i in range(len(ner_df)):
+    row = ner_df.iloc[i]
+    temp = pd.DataFrame([{'subject': row['Label'], 'relation':'include', 'object':row['Entity']}])   
+    final_relation = pd.concat([temp, final_relation])
+
+
+
+final_relation.drop_duplicates().reset_index(drop=True).to_excel('OSHUMED_SVO.xlsx')
+
+ner_df.drop_duplicates(['Entity']).reset_index(drop=True).to_excel('Ner_xlsx/Oshumed_NER.xlsx')
+
+final_term_list.reset_index(drop=True).to_excel('OSHUMED_terms.xlsx')
 
