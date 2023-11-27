@@ -10,10 +10,12 @@ ent_end_char = []
 labels = []
 confidence = []
 
-tagger = Classifier.load('bioner')
+
+
+tagger = Classifier.load('ner')
 nlp = spacy.load("en_core_web_sm")
 
-def FlairNer(sentences):
+def FlairNER(sentences):
     for setence in sentences:
         sentence = Sentence(setence)
 
@@ -37,7 +39,8 @@ def FlairNer(sentences):
     df = pd.DataFrame(list(zip(entities, ent_start_char, ent_end_char, labels, confidence)), columns= ['Entity', 'Start Index', 'End Index', 'Label', 'Confidence']).drop_duplicates(subset=['Entity', 'Label'])
     df.reset_index(inplace=True)
     df.drop(columns='index', inplace=True)
-    df.to_excel('Ner_xlsx/Oshumed_NER.xlsx')
+    return df
+    # df.to_excel('Ner_xlsx/Oshumed_NER.xlsx')
 
 def SpacyNER(lines):
     for line in lines:
@@ -51,4 +54,5 @@ def SpacyNER(lines):
     df = pd.DataFrame(list(zip(entities, ent_start_char, ent_end_char, labels)), columns= ['Entity', 'Start Index', 'End Index', 'Label']).drop_duplicates(subset=['Entity', 'Label'])
     df.reset_index(inplace=True)
     df.drop(columns='index', inplace=True)
-    df.to_excel('Ner_xlsx/Oshumed_NER.xlsx')
+    return df
+    # df.to_excel('Ner_xlsx/Oshumed_NER.xlsx')

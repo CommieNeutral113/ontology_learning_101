@@ -1,6 +1,6 @@
 from coref_stage import Coref
 from TermsExtractor import extractor
-from NER import FlairNer, SpacyNER
+from NER import FlairNER, SpacyNER
 from nltk import StanfordPOSTagger, word_tokenize, sent_tokenize
 from openie import StanfordOpenIE
 import pandas as pd
@@ -15,8 +15,19 @@ TAG_MODEL = 'C-Value-Term-Extraction-master/stanford-postagger-2017-06-09/stanfo
 
 TAGGER = StanfordPOSTagger(TAG_MODEL, JAR, encoding = "utf-8")
 
-new_txt = Coref('ohsumed-first-20000-docs/ohsumed-first-20000-docs/test/C01/0000011')
-# print('new text: ', new_txt)
+current_dir = os.getcwd().replace('\\', '/')
+wiki_dir_path = current_dir + '/Wiki_dataset'
+wiki_dir_list = dir_list = os.listdir(wiki_dir_path)
+
+file_name_list = []
+for file in wiki_dir_list:
+    file_name_list.append(file.split('.txt')[0])
+
+# for name in file_name_list:
+
+new_txt = Coref('Wiki_dataset/Warren Buffet.txt')
+
+print('new text: ', new_txt)
 with open('new_text.txt', 'w') as file:
     for line in new_txt:
         line = line.strip()
@@ -27,7 +38,7 @@ with open('new_text.txt', 'w') as file:
 
 
 properties = {
-    'openie.affinity_probability_cap': 1/15,
+    'openie.affinity_probability_cap': 1/10,
 }
 
 path = "new_text.txt"
@@ -85,25 +96,37 @@ final_term_list = pd.concat([term_list1, term_list2, term_list3], ignore_index=T
 
 final_term_list.to_excel('OSHUMED_terms.xlsx')
 
-terms = pd.read_excel('OSHUMED_terms.xlsx')['Term'].values.tolist()
 
-# print(terms)
-# a = df.iloc[0]
-# print(a['subject'])
+ner_df = SpacyNER(sentences)
+
+ner_df = ner_df.loc[(ner_df['Label'] == 'PERSON') |
+                    (ner_df['Label'] == 'FAC') |
+                    (ner_df['Label'] == 'NORP') |
+                    (ner_df['Label'] == 'GPE') |
+                    (ner_df['Label'] == 'LOC') |
+                    (ner_df['Label'] == 'ORG')]
+
+
+terms = final_term_list['Term'].values.tolist()
+terms += ner_df['Entity'].values.tolist()
+print(terms)
 
 filtered_rows = []
 for i in range(len(df.index)):
     for term in terms:
         row = df.iloc[i]
-        if (term in row['subject'] or term in row['object']):
+        if ((term in row['subject']) and (term in row['object'])):
+            # print(row)
             filtered_rows.append(row)
             break
 
-filtered_df = pd.DataFrame(filtered_rows)
+final_relation = pd.DataFrame(filtered_rows)
 
-print(filtered_df)
+print(final_relation)
 
-filtered_df.to_excel('OSHUMED_SVO.xlsx')
+final_relation.to_excel('OSHUMED_SVO.xlsx')
 
-FlairNer(sentences)
+# ner_df = ner_df.loc[(ner_df['Label'] == ('PERSON' or 'FAC' or 'NORP' or 'GPE' or 'LOC' or 'ORG'))]
+
+ner_df.to_excel('Ner_xlsx/Oshumed_NER.xlsx')
 

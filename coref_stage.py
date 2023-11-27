@@ -24,7 +24,7 @@ def list_to_dict_count(list1):
     return dict1
 
 
-def Coref(path):
+def Coref(path, name = ''):
     with open(path, 'r') as file:
         txt = file.read()
         # print(txt)
