@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-def generator(filename, relation_df:pd.DataFrame, ner_df: pd.DataFrame, term_df: pd.DataFrame):
+def generator(filename, relation_df:pd.DataFrame, ner_df: pd.DataFrame, term_df: pd.DataFrame, extracted_type =' dataset'):
     rdf_text = f'''<?xml version="1.0"?>
 <rdf:RDF xmlns="http://www.semanticweb.org/long/ontologies/2023/10/{filename}#"
      xml:base="http://www.semanticweb.org/long/ontologies/2023/10/{filename}"
@@ -124,30 +124,31 @@ def generator(filename, relation_df:pd.DataFrame, ner_df: pd.DataFrame, term_df:
 
     ########################
     ### For 1 paragraph
+    if (extracted_type == 'paragraph'):
+        if (os.path.exists(f'{filename}.owl')):
+            os.remove(f'{filename}.owl')
 
-    # if (os.path.exists(f'{filename}.owl')):
-    #     os.remove(f'{filename}.owl')
-
-    # with open(f'{filename}.txt', 'w', encoding='utf8') as file:
-    #     file.write(rdf_text)
-    #     file.close()
-    
-    # os.rename(f'{filename}.txt', f'{filename}.owl')
+        with open(f'{filename}.txt', 'w', encoding='utf8') as file:
+            file.write(rdf_text)
+            file.close()
+        
+        os.rename(f'{filename}.txt', f'{filename}.owl')
 
     #########################
 
     #########################
     ### For whole dataset
-    path = 'RDF_file/' + filename
+    if (extracted_type == 'dataset'):
+        path = 'RDF_file/' + filename
 
-    if (os.path.exists('RDF_file/' + filename + '.owl')):
-        os.remove('RDF_file/' + filename + '.owl')
+        if (os.path.exists('RDF_file/' + filename + '.owl')):
+            os.remove('RDF_file/' + filename + '.owl')
 
-    # print (rdf_text)
-    # path = 'RDF_file/' + filename + '.txt'
-    with open(path + '.txt', 'w', encoding='utf8') as file:
-        file.write(rdf_text)
-        file.close()
-    
-    os.rename(path + '.txt', path + '.owl')
+        # print (rdf_text)
+        # path = 'RDF_file/' + filename + '.txt'
+        with open(path + '.txt', 'w', encoding='utf8') as file:
+            file.write(rdf_text)
+            file.close()
+        
+        os.rename(path + '.txt', path + '.owl')
     #########################

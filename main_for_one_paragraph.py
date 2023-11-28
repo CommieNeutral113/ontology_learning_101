@@ -22,7 +22,7 @@ TAGGER = StanfordPOSTagger(TAG_MODEL, JAR, encoding = "utf-8")
 
 
 # insert you path to text file
-new_txt = Coref('Wiki_dataset/Haruki_Murakami.txt')
+new_txt = Coref('Wiki_dataset/Fidel_Castro.txt')
 
 print('new text: ', new_txt)
 with open('new_text.txt', 'w', encoding='utf8') as file:
@@ -152,4 +152,4 @@ final_relation.drop_duplicates().reset_index(drop=True).to_excel('OSHUMED_SVO.xl
 ner_df.drop_duplicates(['Entity']).reset_index(drop=True).to_excel('Oshumed_NER.xlsx')
 final_term_list.reset_index(drop=True).to_excel('OSHUMED_terms.xlsx')
 
-generator('test_wiki', final_relation, ner_df, final_term_list)
+generator('test_wiki', final_relation, ner_df, final_term_list, 'paragraph')
