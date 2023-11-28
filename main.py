@@ -39,12 +39,12 @@ for file_name in file_name_list:
     print('File Name: ' + file_name)
 
     temp_dir = f"Extraction/{file_name}/"
-    
+
     new_txt = Coref(f'Wiki_dataset/{file_name}.txt')
 
     text_path = temp_dir + f"{file_name}.txt"
     # print('new text: ', new_txt)
-    with open(text_path, 'w') as file:
+    with open(text_path, 'w', encoding='utf8') as file:
         for line in new_txt:
             line = line.strip()
             if (line[-1] != '.'):
@@ -57,7 +57,7 @@ for file_name in file_name_list:
         'openie.affinity_probability_cap': 1/8,
     }
 
-    txt = open(text_path, 'r').read()
+    txt = open(text_path, 'r', encoding='utf8').read()
     txt = ' '.join(txt.splitlines())
 
     # print(txt)
@@ -75,7 +75,7 @@ for file_name in file_name_list:
     # list các câu sau khi được coref
     sentences = []
 
-    with open(text_path, 'r') as file:
+    with open(text_path, 'r', encoding='utf8') as file:
         line = file.readline()
         while (line != ''):
             line = line.strip('\n')
@@ -188,3 +188,5 @@ for file_name in file_name_list:
     final_term_list.reset_index(drop=True).to_excel(excel_path + '_terms.xlsx')
 
     generator(f'{file_name}_wiki', final_relation, ner_df, final_term_list)
+
+    print(f'\n\nDone {file_name}')
