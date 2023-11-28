@@ -149,7 +149,7 @@ final_relation = pd.DataFrame(filtered_rows).sort_values(by=['object'])
 
 
 final_relation.drop_duplicates().reset_index(drop=True).to_excel('OSHUMED_SVO.xlsx')
-ner_df.drop_duplicates(['Entity']).reset_index(drop=True).to_excel('Ner_xlsx/Oshumed_NER.xlsx')
+ner_df.drop_duplicates(['Entity']).reset_index(drop=True).to_excel('Oshumed_NER.xlsx')
 final_term_list.reset_index(drop=True).to_excel('OSHUMED_terms.xlsx')
 
 generator('test_wiki', final_relation, ner_df, final_term_list)
