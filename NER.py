@@ -4,18 +4,16 @@ import spacy
 import pandas as pd
 
 
-entities = []
-ent_start_char = []
-ent_end_char = []
-labels = []
-confidence = []
-
-
 
 tagger = Classifier.load('ner')
 nlp = spacy.load("en_core_web_sm")
 
 def FlairNER(sentences):
+    entities = []
+    ent_start_char = []
+    ent_end_char = []
+    labels = []
+    confidence = []
     for setence in sentences:
         sentence = Sentence(setence)
 
@@ -43,6 +41,11 @@ def FlairNER(sentences):
     # df.to_excel('Ner_xlsx/Oshumed_NER.xlsx')
 
 def SpacyNER(lines):
+    entities = []
+    ent_start_char = []
+    ent_end_char = []
+    labels = []
+
     for line in lines:
         doc = nlp(line)
         for ent in doc.ents:
