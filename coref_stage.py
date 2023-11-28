@@ -85,6 +85,7 @@ def Coref(path, name = ''):
     # choose those of highest frequency AND shortest in length (some are too long)
     cluster_representatives = []
     for i, cluster in enumerate(FCoref_terms_stringtype):
+        # print(cluster)
         cluster_terms = [term.lower() for term in cluster]
         removeables = []
         # a good way of checking containment of pronouns is using .split, because history also has his
@@ -95,7 +96,12 @@ def Coref(path, name = ''):
                     break
         cluster = [cluster[i] for i in range(len(cluster)) if i not in removeables]
         cluster_term_count = list_to_dict_count(cluster)
-        cluster_representatives.append(cluster_term_count[0])
+        print(cluster_term_count)
+        if len(cluster_term_count) > 0:
+            cluster_representatives.append(cluster_term_count[0])
+
+        else:
+            cluster_representatives.append('entity')
         # print(cluster)
         # print(cluster_representatives[i])
 

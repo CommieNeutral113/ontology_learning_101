@@ -30,7 +30,7 @@ def generator(filename, relation_df:pd.DataFrame, ner_df: pd.DataFrame, term_df:
     relation_list = list(set(relation_df['relation'].values.tolist()))
     for i in range(len(relation_list)):
         relation = relation_list[i]
-        relation = relation.replace(' ', '_')
+        relation = relation.replace(' ', '_').replace('\'', '_')
         # print(relation)
         Annotation_properties += f'''    <!-- http://www.semanticweb.org/long/ontologies/2023/10/{filename}#{relation} -->
 
@@ -97,15 +97,15 @@ def generator(filename, relation_df:pd.DataFrame, ner_df: pd.DataFrame, term_df:
 '''
         if (entity in entities_has_class):
             row = ner_df.loc[ner_df['Entity'] == entity]
-            entity_class = row['Label'].values[0].replace(' ', '_')
+            entity_class = row['Label'].values[0].replace(' ', '_').replace('\'', '_')
             Entities += f'''        <rdf:type rdf:resource="http://www.semanticweb.org/long/ontologies/2023/10/{filename}#{entity_class}"/>
 '''
         if (entity in subject_list):
             rows = relation_df.loc[relation_df['subject'] == entity]
             for index in range(len(rows)):
                 row = rows.iloc[index]         
-                relate_to = row['relation'].replace(' ', '_')
-                object_related = row['object'].replace(' ', '_')
+                relate_to = row['relation'].replace(' ', '_').replace('\'', '_')
+                object_related = row['object'].replace(' ', '_').replace('\'', '_')
                 Entities += f'''        <{relate_to} rdf:resource="http://www.semanticweb.org/long/ontologies/2023/10/{filename}#{object_related}"/>
 '''
 
